@@ -5,7 +5,7 @@ import pl.auction_system.model.AccType;
 
 @Data
 public class UserAdminDto {
-    private Long id;
+    private String userNumber;
     private String username;
     private String email;
     private String name;

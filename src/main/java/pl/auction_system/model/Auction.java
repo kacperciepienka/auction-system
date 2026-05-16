@@ -20,7 +20,7 @@ public class Auction {
     private Long id;
 
     @Column(unique = true)
-    @Length(min = 10, max = 12)
+    @Length(min = 12, max = 25)
     private String referenceNumber;
 
     @NotBlank(message = "Auction title can't be empty")
@@ -29,7 +29,7 @@ public class Auction {
     private String title;
 
     @NotBlank(message = "Auction description can't be empty")
-    @Lob
+    @Lob // uwaga przy zmianie bazy
     private String description;
 
     @NotNull(message = "Auction category can't be empty")

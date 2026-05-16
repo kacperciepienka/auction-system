@@ -7,6 +7,7 @@ import java.time.LocalDateTime;
 
 @Data
 public class BidUserDto {
+    private String bidIdNumber;
     private String bidderUsername;
     private String bidderEmail;
     private BigDecimal amount;

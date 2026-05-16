@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
+import org.hibernate.validator.constraints.Length;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -16,6 +17,10 @@ public class Bid {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(unique = true)
+    @Length(min = 8, max = 25)
+    private String bidIdNumber;
 
     @NotNull(message = "Bid amount can't be empty")
     @DecimalMin(value = "0.01", message = "Min. bid is 0.01PLN")

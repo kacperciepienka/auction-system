@@ -9,7 +9,6 @@ import java.time.LocalDate;
 
 @Data
 public class AuctionAdminDto {
-    private Long id;
     private String referenceNumber;
     private String title;
     private String description;
@@ -19,7 +18,7 @@ public class AuctionAdminDto {
     private LocalDate startTime;
     private LocalDate endTime;
     private AuctionStatus auctionStatus;
-    private Long ownerId;
+    private String ownerNumber;
     private String ownerUsername;
     private String ownerEmail;
 }

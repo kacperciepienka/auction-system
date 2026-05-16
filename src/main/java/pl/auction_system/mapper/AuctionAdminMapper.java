@@ -8,7 +8,7 @@ import pl.auction_system.model.Auction;
 @Mapper(componentModel = "spring")
 public interface AuctionAdminMapper {
 
-    @Mapping(target = "ownerId", source = "owner.id")
+    @Mapping(target = "ownerNumber", source = "owner.userNumber")
     @Mapping(target = "ownerUsername", source = "owner.username")
     @Mapping(target = "ownerEmail", source = "owner.email")
 

@@ -7,7 +7,6 @@ import pl.auction_system.model.User;
 
 @Mapper(componentModel = "spring")
 public interface UserAdminMapper {
-
     @Mapping(target = "name", expression = "java(user.getFirstName() + \" \" + user.getLastName())")
 
     UserAdminDto toDto(User user);

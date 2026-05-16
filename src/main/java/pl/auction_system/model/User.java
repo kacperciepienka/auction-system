@@ -15,9 +15,13 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(unique = true)
+    @Length(min = 10, max = 25)
+    private String userNumber;
+
     @NotBlank(message = "User username can't be empty")
     @Column(unique = true, length = 30)
-    @Length(min = 4, max = 24, message = "User username must be between 4 and 24 characters")
+    @Length(min = 4, max = 30, message = "User username must be between 4 and 24 characters")
     private String username;
 
     @NotBlank(message = "User email can't be empty")
