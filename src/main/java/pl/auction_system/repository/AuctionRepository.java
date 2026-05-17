@@ -12,6 +12,7 @@ import pl.auction_system.model.AuctionStatus;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -29,27 +30,21 @@ public interface AuctionRepository extends JpaRepository<Auction, Long> {
         Page<Auction> findAllByCurrentPriceBetween(BigDecimal currentPriceAfter, BigDecimal currentPriceBefore, Pageable pageable);
 
     // by start date
-        Page<Auction> findAllByStartTime(LocalDate startTime, Pageable pageable);
-        Page<Auction> findAllByStartTimeIsAfter(LocalDate startTimeAfter, Pageable pageable);
-        Page<Auction> findAllByStartTimeIsBefore(LocalDate startTimeBefore, Pageable pageable);
-        Page<Auction> findAllByStartTimeIsBetween(LocalDate startTimeAfter, LocalDate startTimeBefore, Pageable pageable);
+        Page<Auction> findAllByStartTime(LocalDateTime startTime, Pageable pageable);
+        Page<Auction> findAllByStartTimeIsAfter(LocalDateTime startTimeAfter, Pageable pageable);
+        Page<Auction> findAllByStartTimeIsBefore(LocalDateTime startTimeBefore, Pageable pageable);
+        Page<Auction> findAllByStartTimeIsBetween(LocalDateTime startTimeAfter, LocalDateTime startTimeBefore, Pageable pageable);
 
     // by end date
-        Page<Auction> findAllByEndTime(LocalDate endTime, Pageable pageable); // for exact date
-        Page<Auction> findAllByEndTimeIsAfter(LocalDate endTimeAfter, Pageable pageable);
-        Page<Auction> findAllByEndTimeIsBefore(LocalDate endTimeBefore, Pageable pageable);
-        Page<Auction> findAllByEndTimeIsBetween(LocalDate endTimeAfter, LocalDate endTimeBefore, Pageable pageable);
+        Page<Auction> findAllByEndTime(LocalDateTime endTime, Pageable pageable); // for exact date
+        Page<Auction> findAllByEndTimeIsAfter(LocalDateTime endTimeAfter, Pageable pageable);
+        Page<Auction> findAllByEndTimeIsBefore(LocalDateTime endTimeBefore, Pageable pageable);
+        Page<Auction> findAllByEndTimeIsBetween(LocalDateTime endTimeAfter, LocalDateTime endTimeBefore, Pageable pageable);
 
     Page<Auction> findAllByAuctionStatus(AuctionStatus auctionStatus, Pageable pageable);
 
     // by Owner
-        Page<Auction> findAllByOwner_Id(Long ownerId, Pageable pageable);
         Page<Auction> findAllByOwner_UserNumberEqualsIgnoreCase(String ownerUserNumber, Pageable pageable);
         Page<Auction> findAllByOwner_UsernameEqualsIgnoreCase(String ownerUsername, Pageable pageable);
-        Page<Auction> findAllByOwner_EmailEqualsIgnoreCase(String ownerEmail, Pageable pageable);
-
-    @Query("SELECT COUNT(a) FROM Auction a")
-    Integer auctionCount();
-
-    List<Auction> findAllByAuctionStatusAndEndTimeLessThanEqual(AuctionStatus auctionStatus, LocalDate date);
+    List<Auction> findAllByAuctionStatusAndEndTimeLessThanEqual(AuctionStatus auctionStatus, LocalDateTime date);
 }

@@ -9,7 +9,6 @@ import java.time.LocalDateTime;
 public class BidUserDto {
     private String bidIdNumber;
     private String bidderUsername;
-    private String bidderEmail;
     private BigDecimal amount;
     private LocalDateTime bidTime;
     private String auctionReferenceNumber;

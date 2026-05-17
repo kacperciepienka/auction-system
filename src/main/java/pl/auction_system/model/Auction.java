@@ -9,6 +9,7 @@ import org.hibernate.validator.constraints.Length;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Data
@@ -45,10 +46,10 @@ public class Auction {
     private BigDecimal currentPrice;
 
     // automatycznie nadpisywane w serwisie
-    private LocalDate startTime;
+    private LocalDateTime startTime;
 
     // automatycznie nadpisywane w serwisie
-    private LocalDate endTime;
+    private LocalDateTime endTime;
 
     // automatycznie nadpisywane w serwisie
     @Enumerated(EnumType.STRING)

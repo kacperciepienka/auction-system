@@ -4,7 +4,7 @@ import lombok.Data;
 import pl.auction_system.model.AuctionCategory;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Data
 public class AuctionUserDto {
@@ -14,8 +14,8 @@ public class AuctionUserDto {
     private AuctionCategory auctionCategory;
     private BigDecimal startingPrice;
     private BigDecimal currentPrice;
-    private LocalDate startTime;
-    private LocalDate endTime;
+    private LocalDateTime startTime;
+    private LocalDateTime endTime;
     private String ownerUsername;
     private String ownerEmail;
 }

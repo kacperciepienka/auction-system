@@ -18,6 +18,7 @@ import java.util.Random;
 @Transactional
 public class UserService {
     private final UserRepository userRepository;
+    Random random = new Random();
 
     // POST
     public User addUser(User userToAdd) {
@@ -32,14 +33,13 @@ public class UserService {
                 });
 
         userToAdd.setAccType(AccType.USER);
-        Random random = new Random();
-        int randomNum = random.nextInt(10000, 99999);
-        String userPrefix = userToAdd.getUsername().substring(0,2).toUpperCase();
+        int randomNum = random.nextInt(1000000, 99999999);
+        String userPrefix = userToAdd.getFirstName() != null && userToAdd.getFirstName().length() >= 2
+                ? userToAdd.getFirstName().substring(0,2).toUpperCase()
+                : "US";
         int year = LocalDate.now().getYear();
-        int count = userRepository.userCount();
         int day = LocalDate.now().getDayOfMonth();
-
-        userToAdd.setUserNumber("USR-" + year + userPrefix + count + day + randomNum);
+        userToAdd.setUserNumber("USR-" + year + userPrefix + day + randomNum);
 
         return userRepository.save(userToAdd);
     }
@@ -56,6 +56,11 @@ public class UserService {
                 });
 
         userToAdd.setAccType(AccType.ADMIN);
+        int randomNum = random.nextInt(1000000, 99999999);
+        int year = LocalDate.now().getYear();
+        int day = LocalDate.now().getDayOfMonth();
+        userToAdd.setUserNumber("ADM-" + year + day + randomNum);
+
         return userRepository.save(userToAdd);
     }
 
@@ -68,11 +73,11 @@ public class UserService {
     }
 
     // PUT
-    public User changeUsername(String oldUsername, String newUsername){
-        User user = userRepository.findUserByUsernameEqualsIgnoreCase(oldUsername)
-                .orElseThrow(() -> new UserNotFoundByUsernameException(oldUsername));
+    public User changeUsername(String username, String newUsername){
+        User user = userRepository.findUserByUsernameEqualsIgnoreCase(username)
+                .orElseThrow(() -> new UserNotFoundByUsernameException(username));
 
-        if (oldUsername.equals(newUsername)){
+        if (username.equals(newUsername)){
             return user;
         }
 
@@ -140,8 +145,8 @@ public class UserService {
 
     //by first and last name
     public Page<User> findAllByFirstNameEqualsIgnoreCase(String firstName, Pageable pageable) {
-        return userRepository.findAllByFirstNameEqualsIgnoreCase(firstName, pageable)
-;    }
+        return userRepository.findAllByFirstNameEqualsIgnoreCase(firstName, pageable);
+    }
 
     public Page<User> findAllByLastNameEqualsIgnoreCase(String lastName, Pageable pageable) {
         return userRepository.findAllByLastNameEqualsIgnoreCase(lastName, pageable);

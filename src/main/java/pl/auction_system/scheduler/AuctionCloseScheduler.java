@@ -9,7 +9,7 @@ import pl.auction_system.model.Auction;
 import pl.auction_system.model.AuctionStatus;
 import pl.auction_system.repository.AuctionRepository;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Component
@@ -26,7 +26,7 @@ public class AuctionCloseScheduler {
 
         // Szukamy aukcji, które są ACTIVE i ich czas minął
         List<Auction> expiredAuctions = auctionRepository
-                .findAllByAuctionStatusAndEndTimeLessThanEqual(AuctionStatus.ACTIVE, LocalDate.now());
+                .findAllByAuctionStatusAndEndTimeLessThanEqual(AuctionStatus.ACTIVE, LocalDateTime.now());
 
         if (expiredAuctions.isEmpty()) {
             return;

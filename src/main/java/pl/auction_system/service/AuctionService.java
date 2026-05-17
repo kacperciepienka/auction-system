@@ -17,7 +17,7 @@ import pl.auction_system.repository.AuctionRepository;
 import pl.auction_system.repository.UserRepository;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Random;
 
 @Service
@@ -34,17 +34,16 @@ public class AuctionService {
 
         auction.setOwner(owner);
         auction.setCurrentPrice(auction.getStartingPrice());
-        auction.setStartTime(LocalDate.now());
+        auction.setStartTime(LocalDateTime.now());
         auction.setEndTime(auction.getStartTime().plusDays(14));
         auction.setAuctionStatus(AuctionStatus.ACTIVE);
 
         Random random = new Random();
-        int randomNumber = random.nextInt(1000, 9999);
-        String categoryPrefix = auction.getAuctionCategory().name().substring(0, 3).toUpperCase();
+        int randomNumber = random.nextInt(1000000, 99999999);
+        String categoryPrefix = auction.getAuctionCategory().name().substring(0, 2).toUpperCase();
         int year = auction.getStartTime().getYear();
-        int count = auctionRepository.auctionCount();
         int day = auction.getStartTime().getDayOfMonth();
-        auction.setReferenceNumber(categoryPrefix + "-" + year + count + day + randomNumber);
+        auction.setReferenceNumber(categoryPrefix + "-" + year + day + randomNumber);
 
         return auctionRepository.save(auction);
     }
@@ -54,7 +53,7 @@ public class AuctionService {
         Auction auction = auctionRepository.findAuctionByReferenceNumberEqualsIgnoreCase(referenceNumber)
                 .orElseThrow(() -> new AuctionNotFoundByReferenceNumber(referenceNumber));
 
-        auction.setEndTime(LocalDate.now());
+        auction.setEndTime(LocalDateTime.now());
         auctionRepository.delete(auction);
     }
 
@@ -105,7 +104,7 @@ public class AuctionService {
         Auction auction = auctionRepository.findAuctionByReferenceNumberEqualsIgnoreCase(referenceNumber)
                 .orElseThrow(() -> new AuctionNotFoundByReferenceNumber(referenceNumber));
 
-        auction.setEndTime(LocalDate.now());
+        auction.setEndTime(LocalDateTime.now());
         auction.setAuctionStatus(AuctionStatus.FINISHED);
         return auctionRepository.save(auction);
     }
@@ -137,41 +136,41 @@ public class AuctionService {
         return auctionRepository.findAllByCurrentPriceIsGreaterThanEqual(currentPriceIsGreaterThan, pageable);
     }
 
-    public Page<Auction> findAllByCurrentPriceBetween(BigDecimal currentPriceAfter, BigDecimal currentPriceBefore, Pageable pageable) {
+    public Page<Auction> findAllByCurrentPriceIsBetween(BigDecimal currentPriceAfter, BigDecimal currentPriceBefore, Pageable pageable) {
         return auctionRepository.findAllByCurrentPriceBetween(currentPriceAfter, currentPriceBefore, pageable);
     }
 
     // by start date
-    public Page<Auction> findAllByStartTime(LocalDate startTime, Pageable pageable) {
+    public Page<Auction> findAllByStartTime(LocalDateTime startTime, Pageable pageable) {
         return auctionRepository.findAllByStartTime(startTime, pageable);
     }
 
-    public Page<Auction> findAllByStartTimeIsAfter(LocalDate startTimeAfter, Pageable pageable) {
+    public Page<Auction> findAllByStartTimeIsAfter(LocalDateTime startTimeAfter, Pageable pageable) {
         return auctionRepository.findAllByStartTimeIsAfter(startTimeAfter, pageable);
     }
 
-    public Page<Auction> findAllByStartTimeIsBefore(LocalDate startTimeBefore, Pageable pageable) {
+    public Page<Auction> findAllByStartTimeIsBefore(LocalDateTime startTimeBefore, Pageable pageable) {
         return auctionRepository.findAllByStartTimeIsBefore(startTimeBefore, pageable);
     }
 
-    public Page<Auction> findAllByStartTimeIsBetween(LocalDate startTimeAfter, LocalDate startTimeBefore, Pageable pageable) {
+    public Page<Auction> findAllByStartTimeIsBetween(LocalDateTime startTimeAfter, LocalDateTime startTimeBefore, Pageable pageable) {
         return auctionRepository.findAllByStartTimeIsBetween(startTimeAfter, startTimeBefore, pageable);
     }
 
     // by end date
-    public Page<Auction> findAllByEndTime(LocalDate endTime, Pageable pageable) {
+    public Page<Auction> findAllByEndTime(LocalDateTime endTime, Pageable pageable) {
         return auctionRepository.findAllByEndTime(endTime, pageable);
     }
 
-    public Page<Auction> findAllByEndTimeIsAfter(LocalDate endTimeAfter, Pageable pageable) {
+    public Page<Auction> findAllByEndTimeIsAfter(LocalDateTime endTimeAfter, Pageable pageable) {
         return auctionRepository.findAllByEndTimeIsAfter(endTimeAfter, pageable);
     }
 
-    public Page<Auction> findAllByEndTimeIsBefore(LocalDate endTimeBefore, Pageable pageable) {
+    public Page<Auction> findAllByEndTimeIsBefore(LocalDateTime endTimeBefore, Pageable pageable) {
         return auctionRepository.findAllByEndTimeIsBefore(endTimeBefore, pageable);
     }
 
-    public Page<Auction> findAllByEndTimeIsBetween(LocalDate endTimeAfter, LocalDate endTimeBefore, Pageable pageable) {
+    public Page<Auction> findAllByEndTimeIsBetween(LocalDateTime endTimeAfter, LocalDateTime endTimeBefore, Pageable pageable) {
         return auctionRepository.findAllByEndTimeIsBetween(endTimeAfter, endTimeBefore, pageable);
     }
 
@@ -180,19 +179,11 @@ public class AuctionService {
     }
 
     // by Owner
-    public Page<Auction> findAllByOwner_Id(Long ownerId, Pageable pageable) {
-        return auctionRepository.findAllByOwner_Id(ownerId, pageable);
-    }
-
     public Page<Auction> findAllByOwner_UserNumberEqualsIgnoreCase(String ownerUserNumber, Pageable pageable){
         return auctionRepository.findAllByOwner_UserNumberEqualsIgnoreCase(ownerUserNumber, pageable);
     }
 
     public Page<Auction> findAllByOwnerUsernameEqualsIgnoreCase(String ownerUsername, Pageable pageable) {
         return auctionRepository.findAllByOwner_UsernameEqualsIgnoreCase(ownerUsername, pageable);
-    }
-
-    public Page<Auction> findAllByOwner_EmailEqualsIgnoreCase(String ownerEmail, Pageable pageable) {
-        return auctionRepository.findAllByOwner_EmailEqualsIgnoreCase(ownerEmail, pageable);
     }
 }

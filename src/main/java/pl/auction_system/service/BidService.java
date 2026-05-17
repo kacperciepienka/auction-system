@@ -28,7 +28,7 @@ public class BidService {
     //DELETE ->bid nie da się usunąć
 
     //POST
-    public Bid addBid(Bid bid, String bidderUsername, String referenceNumber){
+    public Bid addBid(Bid bid, String bidderUsername, String referenceNumber) {
         // find bidder
         User bidder = userRepository.findUserByUsernameEqualsIgnoreCase(bidderUsername)
                 .orElseThrow(() -> new UserNotFoundByUsernameException(bidderUsername));
@@ -37,21 +37,21 @@ public class BidService {
                 .orElseThrow(() -> new AuctionNotFoundByReferenceNumber(referenceNumber));
 
         // właściciel nie może licytować
-        if (auction.getOwner().getUsername().equals(bidder.getUsername())){
+        if (auction.getOwner().getUsername().equals(bidder.getUsername())) {
             throw new OwnerCantBidException(bidderUsername);
         }
 
-        if (auction.getCurrentPrice().compareTo(bid.getAmount()) >= 0){
+        if (auction.getCurrentPrice().compareTo(bid.getAmount()) >= 0) {
             // cena bid nie może być niższa lub równa obecnemu bid
             throw new BadBidException(bid.getAmount());
         }
 
         // podwójne zabezpieczenie
-        if (bid.getAmount().compareTo(BigDecimal.ZERO) <= 0){
+        if (bid.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
             throw new InvalidBidException(bid.getAmount());
         }
 
-        if (auction.getAuctionStatus().equals(AuctionStatus.FINISHED)){
+        if (auction.getAuctionStatus().equals(AuctionStatus.FINISHED)) {
             throw new AuctionIsAlreadyFinishedException(auction.getTitle(), auction.getReferenceNumber());
         }
 
@@ -60,12 +60,13 @@ public class BidService {
         bid.setBidTime(LocalDateTime.now());
 
         Random random = new Random();
-        int randomNumber = random.nextInt(1000, 9999);
-        String usernamePrefix = bidder.getUsername().substring(0,3).toUpperCase();
+        int randomNumber = random.nextInt(1000000, 99999999);
+        String usernamePrefix = bidder.getUsername() != null && bidder.getUsername().length() >= 2
+                ? bidder.getUsername().substring(0,2).toUpperCase()
+                : "QZ";
         int year = LocalDateTime.now().getYear();
-        int count = bidRepository.bidCount();
         int day = LocalDateTime.now().getDayOfMonth();
-        bid.setBidIdNumber(usernamePrefix + "-" + year + count + day + randomNumber);
+        bid.setBidIdNumber(usernamePrefix + "-" + year + day + randomNumber);
 
         // zmiana ceny aukcji
         auction.setCurrentPrice(bid.getAmount());
@@ -77,68 +78,90 @@ public class BidService {
     //PUT
     // zaakceptowanego bid nie można edytować
     //GET
-    public Bid findByBidIdNumberEqualsIgnoreCase(String bidIdNumber){
+    public Bid findByBidIdNumberEqualsIgnoreCase(String bidIdNumber) {
         return bidRepository.findByBidIdNumberEqualsIgnoreCase(bidIdNumber)
                 .orElseThrow(() -> new BidNotFoundByIdNumberException(bidIdNumber));
     }
 
-    public Page<Bid> findAllBids(Pageable pageable){
+    public Page<Bid> findAllBids(Pageable pageable) {
         return bidRepository.findAll(pageable);
     }
 
 
-    public Page<Bid> findAllByBidder_UsernameEqualsIgnoreCase(String bidderUsername, Pageable pageable){
+    public Page<Bid> findAllByBidder_UsernameEqualsIgnoreCase(String bidderUsername, Pageable pageable) {
         return bidRepository.findAllByBidder_UsernameEqualsIgnoreCase(bidderUsername, pageable);
     }
 
-    public Page<Bid> findAllByBidder_UserNumberEqualsIgnoreCase(String userNumber, Pageable pageable){
+    public Page<Bid> findAllByBidder_UserNumberEqualsIgnoreCase(String userNumber, Pageable pageable) {
         return bidRepository.findAllByBidder_UserNumberEqualsIgnoreCase(userNumber, pageable);
     }
 
-    public Page<Bid> findAllByBidder_EmailEqualsIgnoreCase(String bidderEmail, Pageable pageable){
-        return bidRepository.findAllByBidder_EmailEqualsIgnoreCase(bidderEmail, pageable);
-    }
-
-    public Page<Bid> findAllByBidder_Id(Long bidderId, Pageable pageable){
-        return bidRepository.findAllByBidder_Id(bidderId, pageable);
-    }
-
     // by amount of bid
-    public Page<Bid> findAllByAmountIsLessThanEqual(BigDecimal amountIsLessThan, Pageable pageable){
+    public Page<Bid> findAllByAmountIsLessThanEqual(BigDecimal amountIsLessThan, Pageable pageable) {
         return bidRepository.findAllByAmountIsLessThanEqual(amountIsLessThan, pageable);
     }
 
-    public Page<Bid> findAllByAmountIsGreaterThan(BigDecimal amountIsGreaterThan, Pageable pageable){
-        return bidRepository.findAllByAmountIsGreaterThan(amountIsGreaterThan, pageable);
+    public Page<Bid> findAllByAmountIsGreaterThanEqual(BigDecimal amountIsGreaterThan, Pageable pageable) {
+        return bidRepository.findAllByAmountIsGreaterThanEqual(amountIsGreaterThan, pageable);
     }
 
-    public Page<Bid> findAllByAmountBetween(BigDecimal amountAfter, BigDecimal amountBefore, Pageable pageable){
+    public Page<Bid> findAllByAmountIsBetween(BigDecimal amountAfter, BigDecimal amountBefore, Pageable pageable) {
         return bidRepository.findAllByAmountBetween(amountAfter, amountBefore, pageable);
     }
 
+    public Page<Bid> findAllByBidder_UsernameAndAmountIsLessThanEqual(String bidderUsername, BigDecimal amountIsLessThan, Pageable pageable) {
+        return bidRepository.findAllByBidder_UsernameAndAmountIsLessThanEqual(bidderUsername, amountIsLessThan, pageable);
+    }
+
+    public Page<Bid> findAllByBidder_UsernameAndAmountIsGreaterThanEqual(String bidderUsername, BigDecimal amountIsGreaterThan, Pageable pageable) {
+        return bidRepository.findAllByBidder_UsernameAndAmountIsGreaterThanEqual(bidderUsername, amountIsGreaterThan, pageable);
+    }
+
+    public Page<Bid> findAllByBidder_UsernameAndAmountIsBetween(String bidderUsername, BigDecimal amountAfter, BigDecimal amountBefore, Pageable pageable) {
+        return bidRepository.findAllByBidder_UsernameAndAmountBetween(bidderUsername, amountAfter, amountBefore, pageable);
+    }
+
+
     // by date of bid
-    public Page<Bid> findAllByBidTime(LocalDateTime bidTime, Pageable pageable){
+    public Page<Bid> findAllByBidTime(LocalDateTime bidTime, Pageable pageable) {
         return bidRepository.findAllByBidTime(bidTime, pageable);
     }
 
-    public Page<Bid> findAllByBidTimeIsAfter(LocalDateTime bidTimeAfter, Pageable pageable){
+    public Page<Bid> findAllByBidTimeIsAfter(LocalDateTime bidTimeAfter, Pageable pageable) {
         return bidRepository.findAllByBidTimeIsAfter(bidTimeAfter, pageable);
     }
 
-    public Page<Bid> findAllByBidTimeIsBefore(LocalDateTime bidTimeBefore, Pageable pageable){
+    public Page<Bid> findAllByBidTimeIsBefore(LocalDateTime bidTimeBefore, Pageable pageable) {
         return bidRepository.findAllByBidTimeIsBefore(bidTimeBefore, pageable);
     }
 
-    public Page<Bid> findAllByBidTimeIsBetween(LocalDateTime bidTimeAfter, LocalDateTime bidTimeBefore, Pageable pageable){
+    public Page<Bid> findAllByBidTimeIsBetween(LocalDateTime bidTimeAfter, LocalDateTime bidTimeBefore, Pageable pageable) {
         return bidRepository.findAllByBidTimeIsBetween(bidTimeAfter, bidTimeBefore, pageable);
     }
 
-    // by auction
-    public Page<Bid> findAllByAuction_Id(Long auctionId, Pageable pageable){
-        return bidRepository.findAllByAuction_Id(auctionId, pageable);
+    // by date of bid
+    public Page<Bid> findAllByBidder_UsernameAndBidTime(String bidderUsername, LocalDateTime bidTime, Pageable pageable) {
+        return bidRepository.findAllByBidder_UsernameAndBidTime(bidderUsername, bidTime, pageable);
     }
 
-    public Page<Bid> findAllByAuction_ReferenceNumberEqualsIgnoreCase(String auctionReferenceNumber, Pageable pageable){
-        return bidRepository.findAllByAuction_ReferenceNumberEqualsIgnoreCase(auctionReferenceNumber, pageable);
+    public Page<Bid> findAllByBidder_UsernameAndBidTimeIsAfter(String bidderUsername, LocalDateTime bidTimeAfter, Pageable pageable) {
+        return bidRepository.findAllByBidder_UsernameAndBidTimeIsAfter(bidderUsername, bidTimeAfter, pageable);
+    }
+
+    public Page<Bid> findAllByBidder_UsernameAndBidTimeIsBefore(String bidderUsername, LocalDateTime bidTimeBefore, Pageable pageable) {
+        return bidRepository.findAllByBidder_UsernameAndBidTimeIsBefore(bidderUsername, bidTimeBefore, pageable);
+    }
+
+    public Page<Bid> findAllByBidder_UsernameAndBidTimeIsBetween(String bidderUsername, LocalDateTime bidTimeAfter, LocalDateTime bidTimeBefore, Pageable pageable) {
+        return bidRepository.findAllByBidder_UsernameAndBidTimeIsBetween(bidderUsername, bidTimeAfter, bidTimeBefore, pageable);
+    }
+
+    // by auction
+    public Page<Bid> findAllByAuction_ReferenceNumberEqualsIgnoreCase(String referenceNumber, Pageable pageable) {
+        return bidRepository.findAllByAuction_ReferenceNumberEqualsIgnoreCase(referenceNumber, pageable);
+    }
+
+    public Page<Bid> findAllByAuction_TitleContainingIgnoreCase(String title, Pageable pageable) {
+        return bidRepository.findAllByAuction_TitleContainingIgnoreCase(title, pageable);
     }
 }

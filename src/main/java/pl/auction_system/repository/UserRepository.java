@@ -20,7 +20,4 @@ public interface UserRepository extends JpaRepository<User, Long> {
     //by first and last name
         Page<User> findAllByFirstNameEqualsIgnoreCase(String firstName, Pageable pageable);
         Page<User> findAllByLastNameEqualsIgnoreCase(String lastName, Pageable pageable);
-
-    @Query("SELECT COUNT(u) FROM User u")
-    Integer userCount();
 }

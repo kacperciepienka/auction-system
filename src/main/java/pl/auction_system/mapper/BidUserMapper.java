@@ -10,7 +10,6 @@ import pl.auction_system.model.Bid;
 public interface BidUserMapper {
 
     @Mapping(target = "bidderUsername", source = "bidder.username")
-    @Mapping(target = "bidderEmail", source = "bidder.email")
     @Mapping(target = "auctionReferenceNumber", source = "auction.referenceNumber")
     @Mapping(target = "auctionTitle", source = "auction.title")
 
