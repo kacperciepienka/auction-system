@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pl.auction_system.dto.BidAdminDto;
+import pl.auction_system.dto.CreateBidRequest;
 import pl.auction_system.mapper.BidAdminMapper;
 import pl.auction_system.model.Bid;
 import pl.auction_system.service.BidService;
@@ -18,28 +19,28 @@ import java.time.LocalDateTime;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v0.1/admin/bid")
+@RequestMapping("/api/v0.1/admin/bids")
 public class BidAdminController {
     private final BidService bidService;
     private final BidAdminMapper bidAdminMapper;
 
     // POST
-    @PostMapping("/{referenceNumber}")
-    public ResponseEntity<BidAdminDto> addBid(@Valid @RequestBody Bid bid,
+    @PostMapping("/auction/{referenceNumber}")
+    public ResponseEntity<BidAdminDto> addBid(@Valid @RequestBody CreateBidRequest bitToAdd,
                                               @RequestParam String username,
                                               @PathVariable String referenceNumber) {
-        Bid bitToAdd = bidService.addBid(bid, username, referenceNumber);
-        return ResponseEntity.status(HttpStatus.CREATED).body(bidAdminMapper.toDto(bitToAdd));
+        Bid bit = bidService.addBid(bitToAdd, username, referenceNumber);
+        return ResponseEntity.status(HttpStatus.CREATED).body(bidAdminMapper.toDto(bit));
     }
 
     // GET
-    @GetMapping("/id/{bidIdNumber}")
+    @GetMapping("/{bidIdNumber}")
     public ResponseEntity<BidAdminDto> findBidByIdNumber(@PathVariable String bidIdNumber) {
         Bid bid = bidService.findByBidIdNumberEqualsIgnoreCase(bidIdNumber);
         return ResponseEntity.status(HttpStatus.OK).body(bidAdminMapper.toDto(bid));
     }
 
-    @GetMapping("/search/all-bids")
+    @GetMapping()
     public ResponseEntity<Page<BidAdminDto>> findAllBids(Pageable pageable) {
         Page<Bid> bids = bidService.findAllBids(pageable);
         Page<BidAdminDto> dtoPage = bids.map(bidAdminMapper::toDto);
@@ -47,8 +48,8 @@ public class BidAdminController {
         return ResponseEntity.status(HttpStatus.OK).body(dtoPage);
     }
 
-    @GetMapping("/search/bidder-username/{bidderUsername}")
-    public ResponseEntity<Page<BidAdminDto>> findAllBidsByBidderUsername(@PathVariable String bidderUsername,
+    @GetMapping(params = "bidderUsername")
+    public ResponseEntity<Page<BidAdminDto>> findAllBidsByBidderUsername(@RequestParam String bidderUsername,
                                                                          Pageable pageable) {
         Page<Bid> bids = bidService.findAllByBidder_UsernameEqualsIgnoreCase(bidderUsername, pageable);
         Page<BidAdminDto> dtoPage = bids.map(bidAdminMapper::toDto);
@@ -56,8 +57,8 @@ public class BidAdminController {
         return ResponseEntity.status(HttpStatus.OK).body(dtoPage);
     }
 
-    @GetMapping("/search/bidder-number/{userNumber}")
-    public ResponseEntity<Page<BidAdminDto>> findAllByBidder_UserNumber(@PathVariable String userNumber,
+    @GetMapping(params = "userNumber")
+    public ResponseEntity<Page<BidAdminDto>> findAllByBidder_UserNumber(@RequestParam String userNumber,
                                                                         Pageable pageable) {
         Page<Bid> bids = bidService.findAllByBidder_UserNumberEqualsIgnoreCase(userNumber, pageable);
         Page<BidAdminDto> dtoPage = bids.map(bidAdminMapper::toDto);
@@ -65,66 +66,66 @@ public class BidAdminController {
         return ResponseEntity.status(HttpStatus.OK).body(dtoPage);
     }
 
-    @GetMapping("/search/amount-less")
-    public ResponseEntity<Page<BidAdminDto>> findAllByAmountIsLessThanEqual(@RequestParam BigDecimal amountIsLessThan,
+    @GetMapping(params = "amountMax")
+    public ResponseEntity<Page<BidAdminDto>> findAllByAmountIsLessThanEqual(@RequestParam BigDecimal amountMax,
                                                                             Pageable pageable) {
-        Page<Bid> bids = bidService.findAllByAmountIsLessThanEqual(amountIsLessThan, pageable);
+        Page<Bid> bids = bidService.findAllByAmountIsLessThanEqual(amountMax, pageable);
         Page<BidAdminDto> dtoPage = bids.map(bidAdminMapper::toDto);
 
         return ResponseEntity.status(HttpStatus.OK).body(dtoPage);
     }
 
-    @GetMapping("/search/amount-greater")
-    public ResponseEntity<Page<BidAdminDto>> findAllByAmountIsGreaterThanEqual(@RequestParam BigDecimal amountIsGreaterThan,
+    @GetMapping(params = "amountMin")
+    public ResponseEntity<Page<BidAdminDto>> findAllByAmountIsGreaterThanEqual(@RequestParam BigDecimal amountMin,
                                                                                Pageable pageable) {
-        Page<Bid> bids = bidService.findAllByAmountIsGreaterThanEqual(amountIsGreaterThan, pageable);
+        Page<Bid> bids = bidService.findAllByAmountIsGreaterThanEqual(amountMin, pageable);
         Page<BidAdminDto> dtoPage = bids.map(bidAdminMapper::toDto);
 
         return ResponseEntity.status(HttpStatus.OK).body(dtoPage);
     }
 
-    @GetMapping("/search/amount-between")
-    public ResponseEntity<Page<BidAdminDto>> findAllByAmountIsBetween(@RequestParam BigDecimal amountAfter,
-                                                                      @RequestParam BigDecimal amountBefore,
+    @GetMapping(params = {"amountMin", "amountMax"})
+    public ResponseEntity<Page<BidAdminDto>> findAllByAmountIsBetween(@RequestParam BigDecimal amountMin,
+                                                                      @RequestParam BigDecimal amountMax,
                                                                       Pageable pageable) {
-        Page<Bid> bids = bidService.findAllByAmountIsBetween(amountAfter, amountBefore, pageable);
+        Page<Bid> bids = bidService.findAllByAmountIsBetween(amountMin, amountMax, pageable);
         Page<BidAdminDto> dtoPage = bids.map(bidAdminMapper::toDto);
 
         return ResponseEntity.status(HttpStatus.OK).body(dtoPage);
     }
 
-    @GetMapping("/search/bidder/{bidderUsername}/amount-less")
-    public ResponseEntity<Page<BidAdminDto>> findAllByBidder_UsernameAndAmountIsLessThanEqual(@PathVariable String bidderUsername,
-                                                                                              @RequestParam BigDecimal amountIsLessThan,
+    @GetMapping(params = {"bidderUsername", "amountMax"})
+    public ResponseEntity<Page<BidAdminDto>> findAllByBidder_UsernameAndAmountIsLessThanEqual(@RequestParam String bidderUsername,
+                                                                                              @RequestParam BigDecimal amountMax,
                                                                                               Pageable pageable) {
-        Page<Bid> bids = bidService.findAllByBidder_UsernameAndAmountIsLessThanEqual(bidderUsername, amountIsLessThan, pageable);
+        Page<Bid> bids = bidService.findAllByBidder_UsernameAndAmountIsLessThanEqual(bidderUsername, amountMax, pageable);
         Page<BidAdminDto> dtoPage = bids.map(bidAdminMapper::toDto);
 
         return ResponseEntity.status(HttpStatus.OK).body(dtoPage);
     }
 
-    @GetMapping("/search/bidder/{bidderUsername}/amount-greater")
-    public ResponseEntity<Page<BidAdminDto>> findAllByBidder_UsernameAndAmountIsGreaterThanEqual(@PathVariable String bidderUsername,
-                                                                                                 @RequestParam BigDecimal amountIsGreaterThan,
+    @GetMapping(params = {"bidderUsername", "amountMin"})
+    public ResponseEntity<Page<BidAdminDto>> findAllByBidder_UsernameAndAmountIsGreaterThanEqual(@RequestParam String bidderUsername,
+                                                                                                 @RequestParam BigDecimal amountMin,
                                                                                                  Pageable pageable) {
-        Page<Bid> bids = bidService.findAllByBidder_UsernameAndAmountIsGreaterThanEqual(bidderUsername, amountIsGreaterThan, pageable);
+        Page<Bid> bids = bidService.findAllByBidder_UsernameAndAmountIsGreaterThanEqual(bidderUsername, amountMin, pageable);
         Page<BidAdminDto> dtoPage = bids.map(bidAdminMapper::toDto);
 
         return ResponseEntity.status(HttpStatus.OK).body(dtoPage);
     }
 
-    @GetMapping("/search/bidder/{bidderUsername}/amount-between")
-    public ResponseEntity<Page<BidAdminDto>> findAllByBidder_UsernameAndAmountBetween(@PathVariable String bidderUsername,
-                                                                                      @RequestParam BigDecimal amountAfter,
-                                                                                      @RequestParam BigDecimal amountBefore,
+    @GetMapping(params = {"bidderUsername", "amountMin", "amountMax"})
+    public ResponseEntity<Page<BidAdminDto>> findAllByBidder_UsernameAndAmountBetween(@RequestParam String bidderUsername,
+                                                                                      @RequestParam BigDecimal amountMin,
+                                                                                      @RequestParam BigDecimal amountMax,
                                                                                       Pageable pageable) {
-        Page<Bid> bids = bidService.findAllByBidder_UsernameAndAmountIsBetween(bidderUsername, amountAfter, amountBefore, pageable);
+        Page<Bid> bids = bidService.findAllByBidder_UsernameAndAmountIsBetween(bidderUsername, amountMin, amountMax, pageable);
         Page<BidAdminDto> dtoPage = bids.map(bidAdminMapper::toDto);
 
         return ResponseEntity.status(HttpStatus.OK).body(dtoPage);
     }
 
-    @GetMapping("/search/time")
+    @GetMapping(params = "bidTime")
     public ResponseEntity<Page<BidAdminDto>> findAllByBidTime(@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime bidTime,
                                                               Pageable pageable) {
         Page<Bid> bids = bidService.findAllByBidTime(bidTime, pageable);
@@ -133,7 +134,7 @@ public class BidAdminController {
         return ResponseEntity.status(HttpStatus.OK).body(dtoPage);
     }
 
-    @GetMapping("/search/time-after")
+    @GetMapping(params = "bidTimeAfter")
     public ResponseEntity<Page<BidAdminDto>> findAllByBidTimeIsAfter(@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime bidTimeAfter,
                                                                      Pageable pageable) {
         Page<Bid> bids = bidService.findAllByBidTimeIsAfter(bidTimeAfter, pageable);
@@ -142,7 +143,7 @@ public class BidAdminController {
         return ResponseEntity.status(HttpStatus.OK).body(dtoPage);
     }
 
-    @GetMapping("/search/time-before")
+    @GetMapping(params = "bidTimeBefore")
     public ResponseEntity<Page<BidAdminDto>> findAllByBidTimeIsBefore(@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime bidTimeBefore,
                                                                       Pageable pageable) {
         Page<Bid> bids = bidService.findAllByBidTimeIsBefore(bidTimeBefore, pageable);
@@ -151,7 +152,7 @@ public class BidAdminController {
         return ResponseEntity.status(HttpStatus.OK).body(dtoPage);
     }
 
-    @GetMapping("/search/time-between")
+    @GetMapping(params = {"bidTimeAfter", "bidTimeBefore"})
     public ResponseEntity<Page<BidAdminDto>> findAllByBidTimeIsBetween(@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime bidTimeAfter,
                                                                        @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime bidTimeBefore,
                                                                        Pageable pageable) {
@@ -161,8 +162,8 @@ public class BidAdminController {
         return ResponseEntity.status(HttpStatus.OK).body(dtoPage);
     }
 
-    @GetMapping("/search/bidder/{bidderUsername}/time")
-    public ResponseEntity<Page<BidAdminDto>> findAllByBidder_UsernameAndBidTime(@PathVariable String bidderUsername,
+    @GetMapping(params = {"bidderUsername", "bidTime"})
+    public ResponseEntity<Page<BidAdminDto>> findAllByBidder_UsernameAndBidTime(@RequestParam String bidderUsername,
                                                                                 @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime bidTime,
                                                                                 Pageable pageable) {
         Page<Bid> bids = bidService.findAllByBidder_UsernameAndBidTime(bidderUsername, bidTime, pageable);
@@ -171,8 +172,8 @@ public class BidAdminController {
         return ResponseEntity.status(HttpStatus.OK).body(dtoPage);
     }
 
-    @GetMapping("/search/bidder/{bidderUsername}/time-after")
-    public ResponseEntity<Page<BidAdminDto>> findAllByBidder_UsernameAndBidTimeIsAfter(@PathVariable String bidderUsername,
+    @GetMapping(params = {"bidderUsername", "bidTimeAfter"})
+    public ResponseEntity<Page<BidAdminDto>> findAllByBidder_UsernameAndBidTimeIsAfter(@RequestParam String bidderUsername,
                                                                                        @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime bidTimeAfter,
                                                                                        Pageable pageable) {
         Page<Bid> bids = bidService.findAllByBidder_UsernameAndBidTimeIsAfter(bidderUsername, bidTimeAfter, pageable);
@@ -181,8 +182,8 @@ public class BidAdminController {
         return ResponseEntity.status(HttpStatus.OK).body(dtoPage);
     }
 
-    @GetMapping("/search/bidder/{bidderUsername}/time-before")
-    public ResponseEntity<Page<BidAdminDto>> findAllByBidder_UsernameAndBidTimeIsBefore(@PathVariable String bidderUsername,
+    @GetMapping(params = {"bidderUsername", "bidTimeBefore"})
+    public ResponseEntity<Page<BidAdminDto>> findAllByBidder_UsernameAndBidTimeIsBefore(@RequestParam String bidderUsername,
                                                                                         @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime bidTimeBefore,
                                                                                         Pageable pageable) {
         Page<Bid> bids = bidService.findAllByBidder_UsernameAndBidTimeIsBefore(bidderUsername, bidTimeBefore, pageable);
@@ -191,8 +192,8 @@ public class BidAdminController {
         return ResponseEntity.status(HttpStatus.OK).body(dtoPage);
     }
 
-    @GetMapping("/search/bidder/{bidderUsername}/time-between")
-    public ResponseEntity<Page<BidAdminDto>> findAllByBidder_UsernameAndBidTimeIsBetween(@PathVariable String bidderUsername,
+    @GetMapping(params = {"bidderUsername", "bidTimeAfter", "bidTimeBefore"})
+    public ResponseEntity<Page<BidAdminDto>> findAllByBidder_UsernameAndBidTimeIsBetween(@RequestParam String bidderUsername,
                                                                                          @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime bidTimeAfter,
                                                                                          @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime bidTimeBefore,
                                                                                          Pageable pageable) {
@@ -202,16 +203,16 @@ public class BidAdminController {
         return ResponseEntity.status(HttpStatus.OK).body(dtoPage);
     }
 
-    @GetMapping("/search/auction/{referenceNumber}")
-    public ResponseEntity<Page<BidAdminDto>> findAllByAuction_ReferenceNumber(@PathVariable String referenceNumber,
+    @GetMapping(params = "auctionReferenceNumber")
+    public ResponseEntity<Page<BidAdminDto>> findAllByAuction_ReferenceNumber(@RequestParam String auctionReferenceNumber,
                                                                               Pageable pageable) {
-        Page<Bid> bids = bidService.findAllByAuction_ReferenceNumberEqualsIgnoreCase(referenceNumber, pageable);
+        Page<Bid> bids = bidService.findAllByAuction_ReferenceNumberEqualsIgnoreCase(auctionReferenceNumber, pageable);
         Page<BidAdminDto> dtoPage = bids.map(bidAdminMapper::toDto);
 
         return ResponseEntity.status(HttpStatus.OK).body(dtoPage);
     }
 
-    @GetMapping("/search/title")
+    @GetMapping(params = "title")
     public ResponseEntity<Page<BidAdminDto>> findAllByAuction_Title(@RequestParam String title,
                                                                     Pageable pageable) {
         Page<Bid> bids = bidService.findAllByAuction_TitleContainingIgnoreCase(title, pageable);

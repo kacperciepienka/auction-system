@@ -1,11 +1,14 @@
 package pl.auction_system.service;
 
 import jakarta.transaction.Transactional;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import pl.auction_system.dto.CreateBidRequest;
 import pl.auction_system.exception.*;
+import pl.auction_system.mapper.CreateBidRequestMapper;
 import pl.auction_system.model.Auction;
 import pl.auction_system.model.AuctionStatus;
 import pl.auction_system.model.Bid;
@@ -25,10 +28,11 @@ public class BidService {
     private final BidRepository bidRepository;
     private final AuctionRepository auctionRepository;
     private final UserRepository userRepository;
+    private final CreateBidRequestMapper createBidRequestMapper;
     //DELETE ->bid nie da się usunąć
 
     //POST
-    public Bid addBid(Bid bid, String bidderUsername, String referenceNumber) {
+    public Bid addBid(@NotNull CreateBidRequest bidToAdd, String bidderUsername, String referenceNumber) {
         // find bidder
         User bidder = userRepository.findUserByUsernameEqualsIgnoreCase(bidderUsername)
                 .orElseThrow(() -> new UserNotFoundByUsernameException(bidderUsername));
@@ -41,16 +45,18 @@ public class BidService {
             throw new OwnerCantBidException(bidderUsername);
         }
 
+        // object
+        Bid bid = createBidRequestMapper.toEntity(bidToAdd);
+
+        // if block
         if (auction.getCurrentPrice().compareTo(bid.getAmount()) >= 0) {
             // cena bid nie może być niższa lub równa obecnemu bid
             throw new BadBidException(bid.getAmount());
         }
-
         // podwójne zabezpieczenie
         if (bid.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
             throw new InvalidBidException(bid.getAmount());
         }
-
         if (auction.getAuctionStatus().equals(AuctionStatus.FINISHED)) {
             throw new AuctionIsAlreadyFinishedException(auction.getTitle(), auction.getReferenceNumber());
         }

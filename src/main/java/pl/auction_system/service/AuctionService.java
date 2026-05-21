@@ -1,14 +1,17 @@
 package pl.auction_system.service;
 
 import jakarta.transaction.Transactional;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import pl.auction_system.dto.CreateAuctionRequest;
 import pl.auction_system.exception.AuctionNotFoundByReferenceNumber;
 import pl.auction_system.exception.CantChangeStartingPriceException;
 import pl.auction_system.exception.InvalidNewTitleException;
 import pl.auction_system.exception.UserNotFoundByUsernameException;
+import pl.auction_system.mapper.CreateAuctionRequestMapper;
 import pl.auction_system.model.Auction;
 import pl.auction_system.model.AuctionCategory;
 import pl.auction_system.model.AuctionStatus;
@@ -26,12 +29,14 @@ import java.util.Random;
 public class AuctionService {
     private final AuctionRepository auctionRepository;
     private final UserRepository userRepository;
+    private final CreateAuctionRequestMapper createAuctionRequestMapper;
 
     // POST
-    public Auction addAuction(Auction auction, String userUsername) {
+    public Auction addAuction(@NotNull CreateAuctionRequest auctionToAdd, String userUsername) {
         User owner = userRepository.findUserByUsernameEqualsIgnoreCase(userUsername)
                 .orElseThrow(() -> new UserNotFoundByUsernameException(userUsername));
 
+        Auction auction = createAuctionRequestMapper.toEntity(auctionToAdd);
         auction.setOwner(owner);
         auction.setCurrentPrice(auction.getStartingPrice());
         auction.setStartTime(LocalDateTime.now());

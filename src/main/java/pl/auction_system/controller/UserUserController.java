@@ -7,6 +7,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import pl.auction_system.dto.CreateUserRequest;
 import pl.auction_system.dto.LoginRequest;
 import pl.auction_system.dto.UserPublicDto;
 import pl.auction_system.dto.UserUserDto;
@@ -17,7 +18,7 @@ import pl.auction_system.service.UserService;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v0.1/user/user")
+@RequestMapping("/api/v0.1/users")
 public class UserUserController {
     private final UserService userService;
     private final UserUserMapper userUserMapper;
@@ -25,7 +26,7 @@ public class UserUserController {
 
     // Post (logowanie/rejestracja)
     @PostMapping("/register")
-    public ResponseEntity<UserUserDto> addNewUser(@Valid @RequestBody User user){
+    public ResponseEntity<UserUserDto> addNewUser(@Valid @RequestBody CreateUserRequest user){
         User userToAdd = userService.addUser(user);
         return ResponseEntity.status(HttpStatus.CREATED).body(userUserMapper.toDto(userToAdd));
     }
@@ -51,21 +52,27 @@ public class UserUserController {
         return ResponseEntity.status(HttpStatus.OK).body(userUserMapper.toDto(user));
     }
 
-    @PutMapping("/change-email")
-    public ResponseEntity<UserUserDto> changeEmail(@RequestParam String oldEmail,
+    @PutMapping("/{username}/email")
+    public ResponseEntity<UserUserDto> changeEmail(@PathVariable String username,
                                                    @RequestParam String newEmail){
-        User user = userService.changeEmail(oldEmail, newEmail);
+        User user = userService.changeEmail(username, newEmail);
         return ResponseEntity.status(HttpStatus.OK).body(userUserMapper.toDto(user));
     }
 
     // GET
-    @GetMapping("/search/username/{username}")
+    @GetMapping("/me")
+    public ResponseEntity<UserUserDto> getMyProfile(@RequestParam String username) {
+        User user = userService.findUserByUsernameEqualsIgnoreCase(username);
+        return ResponseEntity.status(HttpStatus.OK).body(userUserMapper.toDto(user));
+    }
+
+    @GetMapping("/{username}")
     public ResponseEntity<UserPublicDto> findUserByUsername(@PathVariable String username){
         User user = userService.findUserByUsernameEqualsIgnoreCase(username);
         return ResponseEntity.status(HttpStatus.OK).body(userPublicMapper.toDto(user));
     }
 
-    @GetMapping("/search/all-users")
+    @GetMapping
     public ResponseEntity<Page<UserPublicDto>> allUsers(Pageable pageable){
         Page<User> users = userService.findAllUsers(pageable);
         Page<UserPublicDto> dtoPage = users.map(userPublicMapper::toDto);
@@ -73,7 +80,7 @@ public class UserUserController {
         return ResponseEntity.status(HttpStatus.OK).body(dtoPage);
     }
 
-    @GetMapping("/search/first-name")
+    @GetMapping(params = "firstName")
     public ResponseEntity<Page<UserPublicDto>> allUsersByFirstName(@RequestParam String firstName,
                                                                    Pageable pageable){
         Page<User> users = userService.findAllByFirstNameEqualsIgnoreCase(firstName, pageable);
@@ -82,18 +89,12 @@ public class UserUserController {
         return ResponseEntity.status(HttpStatus.OK).body(dtoPage);
     }
 
-    @GetMapping("/search/last-name")
+    @GetMapping(params = "lastName")
     public ResponseEntity<Page<UserPublicDto>> allUsersByLastName(@RequestParam String lastName,
                                                                   Pageable pageable){
         Page<User> users = userService.findAllByLastNameEqualsIgnoreCase(lastName, pageable);
         Page<UserPublicDto> dtoPage = users.map(userPublicMapper::toDto);
 
         return ResponseEntity.status(HttpStatus.OK).body(dtoPage);
-    }
-
-    @GetMapping("/search/me")
-    public ResponseEntity<UserUserDto> getMyProfile(@RequestParam String username) {
-        User user = userService.findUserByUsernameEqualsIgnoreCase(username);
-        return ResponseEntity.status(HttpStatus.OK).body(userUserMapper.toDto(user));
     }
 }

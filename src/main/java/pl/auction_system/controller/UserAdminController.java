@@ -7,6 +7,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import pl.auction_system.dto.CreateUserRequest;
 import pl.auction_system.dto.LoginRequest;
 import pl.auction_system.dto.UserAdminDto;
 import pl.auction_system.mapper.UserAdminMapper;
@@ -16,13 +17,13 @@ import pl.auction_system.service.UserService;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v0.1/user/admin")
+@RequestMapping("/api/v0.1/admin/users")
 public class UserAdminController {
     private final UserService userService;
     private final UserAdminMapper userAdminMapper;
     // POST
     @PostMapping("/register")
-    public ResponseEntity<UserAdminDto> addNewAdminAcc(@Valid @RequestBody User user){
+    public ResponseEntity<UserAdminDto> addNewAdminAcc(@Valid @RequestBody CreateUserRequest user){
         User userAdmin = userService.addAdmin(user);
         return ResponseEntity.status(HttpStatus.CREATED).body(userAdminMapper.toDto(userAdmin));
     }
@@ -48,14 +49,14 @@ public class UserAdminController {
         return ResponseEntity.status(HttpStatus.OK).body(userAdminMapper.toDto(user));
     }
 
-    @PutMapping("/change-email")
-    public ResponseEntity<UserAdminDto> changeEmail(@RequestParam String oldEmail,
+    @PutMapping("/{username}/email")
+    public ResponseEntity<UserAdminDto> changeEmail(@PathVariable String username,
                                                     @RequestParam String newEmail){
-        User user = userService.changeEmail(oldEmail, newEmail);
+        User user = userService.changeEmail(username, newEmail);
         return ResponseEntity.status(HttpStatus.OK).body(userAdminMapper.toDto(user));
     }
 
-    @PutMapping("/{username}/acc-type")
+    @PutMapping("/{username}/accType")
     public ResponseEntity<UserAdminDto> changeAccType(@PathVariable String username,
                                                       @RequestParam AccType accType){
         User user = userService.changeAccTypeByUsername(username, accType);
@@ -63,25 +64,31 @@ public class UserAdminController {
     }
 
     // GET
-    @GetMapping("/search/username/{username}")
+    @GetMapping("/me")
+    public ResponseEntity<UserAdminDto> getMyProfile(@RequestParam String username){
+        User user = userService.findUserByUsernameEqualsIgnoreCase(username);
+        return ResponseEntity.status(HttpStatus.OK).body(userAdminMapper.toDto(user));
+    }
+
+    @GetMapping("/{username}")
     public ResponseEntity<UserAdminDto> findUserByUsername(@PathVariable String username){
         User user = userService.findUserByUsernameEqualsIgnoreCase(username);
         return ResponseEntity.status(HttpStatus.OK).body(userAdminMapper.toDto(user));
     }
 
-    @GetMapping("/search/email/{email}")
+    @GetMapping("/email/{email}")
     public ResponseEntity<UserAdminDto> findUserByEmail(@PathVariable String email){
         User user = userService.findUserByEmailEqualsIgnoreCase(email);
         return ResponseEntity.status(HttpStatus.OK).body(userAdminMapper.toDto(user));
     }
 
-    @GetMapping("/search/user-number/{userNumber}")
+    @GetMapping("/user-number/{userNumber}")
     public ResponseEntity<UserAdminDto> findUserByUserNumber(@PathVariable String userNumber){
         User user = userService.findUserByUserNumberEqualsIgnoreCase(userNumber);
         return ResponseEntity.status(HttpStatus.OK).body(userAdminMapper.toDto(user));
     }
 
-    @GetMapping("/search/all-users")
+    @GetMapping
     public ResponseEntity<Page<UserAdminDto>> allUsers(Pageable pageable){
         Page<User> users = userService.findAllUsers(pageable);
         Page<UserAdminDto> dtoPage = users.map(userAdminMapper::toDto);
@@ -89,7 +96,7 @@ public class UserAdminController {
         return ResponseEntity.status(HttpStatus.OK).body(dtoPage);
     }
 
-    @GetMapping("/search/acc-type")
+    @GetMapping(params = "accType")
     public ResponseEntity<Page<UserAdminDto>> allUsersByAccType(@RequestParam AccType accType,
                                                                 Pageable pageable){
         Page<User> users = userService.findAllByAccType(accType, pageable);
@@ -98,7 +105,7 @@ public class UserAdminController {
         return ResponseEntity.status(HttpStatus.OK).body(dtoPage);
     }
 
-    @GetMapping("/search/first-name")
+    @GetMapping(params = "firstName")
     public ResponseEntity<Page<UserAdminDto>> allUsersByFirstName(@RequestParam String firstName,
                                                                   Pageable pageable){
         Page<User> users = userService.findAllByFirstNameEqualsIgnoreCase(firstName, pageable);
@@ -107,7 +114,7 @@ public class UserAdminController {
         return ResponseEntity.status(HttpStatus.OK).body(dtoPage);
     }
 
-    @GetMapping("/search/last-name")
+    @GetMapping(params = "lastName")
     public ResponseEntity<Page<UserAdminDto>> allUsersByLastName(@RequestParam String lastName,
                                                                  Pageable pageable){
         Page<User> users = userService.findAllByLastNameEqualsIgnoreCase(lastName, pageable);
@@ -115,11 +122,4 @@ public class UserAdminController {
 
         return ResponseEntity.status(HttpStatus.OK).body(dtoPage);
     }
-
-    @GetMapping("/search/me")
-    public ResponseEntity<UserAdminDto> getMyProfile(@RequestParam String username){
-        User user = userService.findUserByUsernameEqualsIgnoreCase(username);
-        return ResponseEntity.status(HttpStatus.OK).body(userAdminMapper.toDto(user));
-    }
-
 }

@@ -2,10 +2,13 @@ package pl.auction_system.service;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.jspecify.annotations.NonNull;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import pl.auction_system.dto.CreateUserRequest;
 import pl.auction_system.exception.*;
+import pl.auction_system.mapper.CreateUserRequestMapper;
 import pl.auction_system.model.AccType;
 import pl.auction_system.model.User;
 import pl.auction_system.repository.UserRepository;
@@ -18,10 +21,11 @@ import java.util.Random;
 @Transactional
 public class UserService {
     private final UserRepository userRepository;
+    private final CreateUserRequestMapper createUserRequestMapper;
     Random random = new Random();
 
     // POST
-    public User addUser(User userToAdd) {
+    public User addUser(@NonNull CreateUserRequest userToAdd) {
         userRepository.findUserByUsernameEqualsIgnoreCase(userToAdd.getUsername())
                 .ifPresent(user -> {
                     throw new UserUsernameAlreadyExistException(userToAdd.getUsername());
@@ -32,19 +36,20 @@ public class UserService {
                     throw new UserEmailAlreadyExistException(userToAdd.getEmail());
                 });
 
-        userToAdd.setAccType(AccType.USER);
+        User user = createUserRequestMapper.toEntity(userToAdd);
+        user.setAccType(AccType.USER);
         int randomNum = random.nextInt(1000000, 99999999);
         String userPrefix = userToAdd.getFirstName() != null && userToAdd.getFirstName().length() >= 2
                 ? userToAdd.getFirstName().substring(0,2).toUpperCase()
                 : "US";
         int year = LocalDate.now().getYear();
         int day = LocalDate.now().getDayOfMonth();
-        userToAdd.setUserNumber("USR-" + year + userPrefix + day + randomNum);
+        user.setUserNumber("USR-" + year + userPrefix + day + randomNum);
 
-        return userRepository.save(userToAdd);
+        return userRepository.save(user);
     }
 
-    public User addAdmin(User userToAdd) {
+    public User addAdmin(@NonNull CreateUserRequest userToAdd) {
         userRepository.findUserByUsernameEqualsIgnoreCase(userToAdd.getUsername())
                 .ifPresent(user -> {
                     throw new UserUsernameAlreadyExistException(userToAdd.getUsername());
@@ -55,13 +60,14 @@ public class UserService {
                     throw new UserEmailAlreadyExistException(userToAdd.getEmail());
                 });
 
-        userToAdd.setAccType(AccType.ADMIN);
+        User user = createUserRequestMapper.toEntity(userToAdd);
+        user.setAccType(AccType.ADMIN);
         int randomNum = random.nextInt(1000000, 99999999);
         int year = LocalDate.now().getYear();
         int day = LocalDate.now().getDayOfMonth();
-        userToAdd.setUserNumber("ADM-" + year + day + randomNum);
+        user.setUserNumber("ADM-" + year + day + randomNum);
 
-        return userRepository.save(userToAdd);
+        return userRepository.save(user);
     }
 
     // DELETE
@@ -90,11 +96,11 @@ public class UserService {
         return userRepository.save(user);
     }
 
-    public User changeEmail(String oldEmail, String newEmail){
-        User user = userRepository.findUserByEmailEqualsIgnoreCase(oldEmail)
-                .orElseThrow(() -> new UserNotFoundByEmailException(oldEmail));
+    public User changeEmail(String username, String newEmail){
+        User user = userRepository.findUserByUsernameEqualsIgnoreCase(username)
+                .orElseThrow(() -> new UserNotFoundByUsernameException(username));
 
-        if (oldEmail.equals(newEmail)) {
+        if (user.getEmail().equals(newEmail)) {
             return user;
         }
 

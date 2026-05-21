@@ -8,7 +8,6 @@ import lombok.Data;
 import org.hibernate.validator.constraints.Length;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
@@ -30,7 +29,6 @@ public class Auction {
     private String title;
 
     @NotBlank(message = "Auction description can't be empty")
-    @Lob // uwaga przy zmianie bazy
     private String description;
 
     @NotNull(message = "Auction category can't be empty")
